@@ -28,23 +28,4 @@ const hexSignature = `0x${fullRHex}${fullSHex}${fullRecoveryHex}`;
 console.log("Private Key: ", toHex(privateKey));
 console.log("Public Key: ", toHex(publicKey));
 console.log("Signature: ", hexSignature);
-
-/*// Remove the '0x' prefix if present
-const cleanHexSignature = hexSignature.startsWith('0x') ? hexSignature.slice(2) : hexSignature;
-
-// Extract the components
-const rHex = cleanHexSignature.slice(0, 64);
-const sHex = cleanHexSignature.slice(64, 128);
-const recoveryHex = cleanHexSignature.slice(128, 130);
-
-// Convert hex components to BigInt and integer
-const r = BigInt('0x' + rHex);
-const s = BigInt('0x' + sHex);
-const recovery = parseInt(recoveryHex, 16);
-
-// Create raw signature object
-const rawSignature = {
-  r: r,
-  s: s,
-  recovery: recovery,
-}; */
+console.log("Raw Signature: ", signature);

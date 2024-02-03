@@ -1,5 +1,6 @@
 const { secp256k1 } = require("ethereum-cryptography/secp256k1");
-const { toHex } = require("ethereum-cryptography/utils");
+const { keccak256 } = require("ethereum-cryptography/keccak");
+const { utf8ToBytes } = require("ethereum-cryptography/utils");
 const express = require("express");
 const app = express();
 const cors = require("cors");
@@ -9,9 +10,9 @@ app.use(cors());
 app.use(express.json());
 
 const balances = {
-  "0x1": 100,
-  "0x2": 50,
-  "0x3": 75,
+  "02d10aab467c62760f99abd4c68e0f63ce7cf9d62bce9ae3dd3283c40498d85b63": 100,
+  "028025b190499548c70d5130eb80123cfe7e42133a0661a597bec125d9d7492f49": 50,
+  "03de62bc76b7f486e7298354e2c49faf8854075b26da3eb231803b42b46dae293c": 75,
 };
 
 app.get("/balance/:address", (req, res) => {
@@ -47,10 +48,12 @@ app.post("/send", (req, res) => {
     recovery: recovery,
   };
 
+  console.log("Raw Signature: ", rawSignature);
+
   const bytes = utf8ToBytes("Transact");
   const hash = keccak256(bytes);
 
-  const isSigned = secp256k1.verify(signature, hash, sender);
+  const isSigned = secp256k1.verify(rawSignature, hash, sender);
 
   setInitialBalance(sender);
   setInitialBalance(recipient);
