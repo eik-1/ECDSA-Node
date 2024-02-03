@@ -23,7 +23,34 @@ app.get("/balance/:address", (req, res) => {
 app.post("/send", (req, res) => {
   //TODO: Get signature from client side
   //then recover the public key from signature
-  const { sender, recipient, amount } = req.body;
+  const { sender, recipient, amount, signature } = req.body;
+
+  // Remove the '0x' prefix if present
+  const cleanHexSignature = signature.startsWith("0x")
+    ? signature.slice(2)
+    : signature;
+
+  // Extract the components
+  const rHex = cleanHexSignature.slice(0, 64);
+  const sHex = cleanHexSignature.slice(64, 128);
+  const recoveryHex = cleanHexSignature.slice(128, 130);
+
+  // Convert hex components to BigInt and integer
+  const r = BigInt("0x" + rHex);
+  const s = BigInt("0x" + sHex);
+  const recovery = parseInt(recoveryHex, 16);
+
+  // Create raw signature object
+  const rawSignature = {
+    r: r,
+    s: s,
+    recovery: recovery,
+  };
+
+  const bytes = utf8ToBytes("Transact");
+  const hash = keccak256(bytes);
+
+  const isSigned = secp256k1.verify(signature, hash, sender);
 
   setInitialBalance(sender);
   setInitialBalance(recipient);
@@ -31,9 +58,13 @@ app.post("/send", (req, res) => {
   if (balances[sender] < amount) {
     res.status(400).send({ message: "Not enough funds!" });
   } else {
-    balances[sender] -= amount;
-    balances[recipient] += amount;
-    res.send({ balance: balances[sender] });
+    if (!isSigned) {
+      res.status(400).send({ message: "Wrong sender" });
+    } else {
+      balances[sender] -= amount;
+      balances[recipient] += amount;
+      res.send({ balance: balances[sender] });
+    }
   }
 });
 
